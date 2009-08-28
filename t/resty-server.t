@@ -21,7 +21,7 @@ use JSON;
 use_ok('Prophet::Record');
 
 my $ua  = Test::WWW::Mechanize->new();
-my $cli = Prophet::CLI->new();
+my $cli = Prophet::CLI->new({ app_class => 'Prophet::TestApp' });
 my $s   = Prophet::TestServer->new();
 
 $cli->handle()->initialize;
@@ -35,14 +35,14 @@ sub url {
 }
 diag(url());
 $ua->get_ok( url('records.json') );
-is( $ua->content, '[]' );
+is( $ua->content, '["__prophet_db_settings"]' );
 
 my $car = Prophet::Record->new( handle => $cli->handle, type => 'Cars' );
 my ($uuid) = $car->create( props => { wheels => 4, windshields => 1 } );
 ok( $uuid, "Created record $uuid" );
 
 $ua->get_ok( url('records.json') );
-is( $ua->content, '["Cars"]' );
+is( $ua->content, '["__prophet_db_settings","Cars"]' );
 
 $ua->get_ok( url( 'records', 'Cars', $uuid . ".json" ) );
 is_deeply(
@@ -126,4 +126,14 @@ use base qw/Test::HTTP::Server::Simple Prophet::Server/;
 
 
 sub port { my $self = shift; $self->{_port} ||= int(rand(1024))+10000; return $self->{_port} }
+
+package Prophet::TestApp;
+use base qw/Prophet::App/;
+
+sub database_settings {
+	{ 
+		project_name => ['DD06F87C-9528-4EFC-AA2B-04E54626DEDF' => 'My Test SD App'],
+	}
+}
+
 1;
