@@ -47,6 +47,12 @@ sub run {
             port   => $self->port,
             domain => 'local',
         );
+        $publisher->publish(
+            name   => 'SD for '.$self->app_handle->setting( label => 'project_name' )->get->[0],
+            type   => '_http._tcp',
+            port   => $self->port,
+            domain => 'local',
+        );
     } else {
         $self->app_handle->log( "Publisher backend is not available. Install one of the "
             . "Net::Rendezvous::Publish::Backend modules from CPAN.");
